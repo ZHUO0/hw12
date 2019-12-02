@@ -1,0 +1,111 @@
+let number = 1000;//set the stars number
+//Initialization
+let arrVX = new Array(number);
+let arrVY = new Array(number);
+let arrX = new Array(number);
+let arrY = new Array(number);
+let arrAX = new Array(number);
+let arrAY = new Array(number);
+//set const number 
+let magnetism = 10;
+let radius = 1;
+let deceleration = 0.95;
+let lorentz = 0.2;
+//set the variable number for judging state
+let start = false;
+let isClick = false;
+let mx , my;//record the mouseX and mouseY when is clicked
+
+//setup, create canvas and prepare something for draw
+function setup(){
+	createCanvas(windowWidth,windowHeight);
+	background(0);
+	for(let i = 0; i < number; ++i){
+		arrX[i] = random(width);
+		arrY[i] = random(height);
+		arrVX[i] = 0;
+		arrVY[i] = 0;
+		arrAX[i] = 0;
+		arrAY[i] = 0;
+	}
+	noStroke();
+	drawWindow();
+	ellipseMode(RADIUS);
+	blendMode(ADD);
+	noLoop();//to wait interaction
+}
+
+
+//draw
+function draw(){
+	blendMode(ADD);//set blend add mode  
+	push();//save 
+	if(!start){
+		return ;
+	}
+	if(!isClick){//not clicked
+		mx = mouseX;
+		my = mouseY;
+	}
+	for(let i = 0; i<number; ++i){//loop draw
+		let distance = dist(mx,my,arrX[i],arrY[i]);
+		if(isClick && distance<3){
+			arrX[i] = random(width);
+			arrY[i] = random(height);
+			arrVX[i] = 0;
+			arrVY[i] = 0;
+			arrAX[i] = 0;
+			arrAY[i] = 0;
+			continue;
+		}
+		
+		if(isClick || distance>3){
+			arrAX[i] = magnetism * (mx - arrX[i]) /(distance * distance);
+			arrAY[i] = magnetism * (my - arrY[i]) / (distance * distance);
+		}
+		
+		if(isClick){
+			arrAY[i] += arrVX[i] * lorentz;
+			arrAX[i] += -arrVY[i] * lorentz;
+		}
+		
+		arrVX[i] += arrAX[i];
+		arrVY[i] += arrAY[i];
+		
+		arrVX[i] *= deceleration;
+		arrVY[i] *= deceleration;
+		
+		arrX[i] += arrVX[i];
+		arrY[i] += arrVY[i];
+		
+		//generate color for fill 
+		let v = dist(0,0,arrVX[i],arrVY[i]);
+		let r = map(v,0,5,0,255);
+		let g = map(v,0,5,64,255);
+		let b = map(v,0,5,128,255);
+		fill(r,g,b,32);
+		ellipse(arrX[i],arrY[i],radius,radius);
+	}
+	pop();//recovery
+	blendMode(BLEND);//set the default mode
+	drawWindow();//draw window
+}
+
+function begin(){
+	start = true;
+	push();
+	blendMode(DARKEST);
+	background(0);
+	pop();
+	loop();
+}
+
+function mouseClicked(){//when mouse is clike to do
+	if(!isClick){
+		isClick = true;
+		mx = mouseX;//recorded value for mouseX
+		my = mouseY;//recorded value for mouseY 
+		begin();//to begin draw
+	}
+	
+  
